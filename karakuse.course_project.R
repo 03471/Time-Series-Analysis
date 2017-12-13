@@ -92,8 +92,6 @@ grid(col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = TRUE)
 
 #conclusion
 "
-1- hourly data didnt work as expected. 
-2- daily aggregatred data is non seasonal and ARMA(1,1) model is feasible
 3- residuals are correlated and p-values > .05 
 4- prediction outputs found in expected range when compred with validation data
 "
