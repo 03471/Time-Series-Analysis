@@ -1,0 +1,54 @@
+---
+title: '1.21'
+author: ""
+date: "October 1, 2017"
+output: word_document
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Problem 1.21
+(a) Simulate a series of n = 500 moving average observations as in Example 1.9 and compute the sample ACF, $$\hat{ρ}(h)$$, to lag 20. Compare the sample ACF you obtain to the actual ACF, ρ(h). [Recall Example 1.20.]  
+(b) Repeat part (a) using only n = 50. How does changing n affect the results?
+```{r library}
+
+packages <- c('ggplot2','stats')
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))  
+}
+require(ggplot2)
+require(stats)
+```
+## a
+```{r part a}
+#population ACF
+lag <- c(0:20) # lag up to 20
+acf.p <- c(1,2/3,1/3, rep(0,18))
+acf.df.p <- data.frame(lag = lag, acf = acf.p)
+# n=500 gaussian white noise ACF
+gwn.500 = rnorm(500,0,1)
+sample.ma3.500=filter(gwn.500,filter=rep(1/3, 3), method = "convolution", sides=2)
+simulation.ma3.500=ts(sample.ma3.500,freq=1,start=1)
+acf.500 = acf(na.omit(simulation.ma3.500), 20, plot = FALSE)
+plot(acf.500, main="ACF n=500")
+acf.df.500 = with(acf.500, data.frame(lag, acf))
+```
+## b
+```{r part b}
+# n=50 gaussian white noise ACF
+gwn.50 = rnorm(50,0,1) # n=500 gaussian white noise
+sample.ma3.50=filter(gwn.50,filter=rep(1/3, 3), method = "convolution", sides=2) 
+simulation.ma3.50=ts(sample.ma3.50,freq=1,start=1)
+acf.50 = acf(na.omit(simulation.ma3.50), 20, plot = FALSE)
+plot(acf.50, main="ACF n=50")
+acf.df.50 = with(acf.50, data.frame(lag, acf))
+#combine the acfs (population, n=500, n=50)
+data = data.frame(rbind(acf.df.500, acf.df.50, acf.df.p), n = c(rep("n=500", 21), rep("n=50", 21), rep("population", 21)))
+```
+```{r pressure, echo=TRUE}
+# comparsion
+ggplot(data = data, mapping = aes(x = lag, y = acf)) +   geom_hline(aes(yintercept = 0)) +   facet_grid(n ~ . )+  geom_segment(mapping = aes(xend = lag, yend = 0)) + theme_bw()
+```
+
+

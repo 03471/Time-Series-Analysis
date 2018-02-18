@@ -1,0 +1,72 @@
+---
+title: '3.21'
+author: ""
+date: "November 18, 2017"
+output: word_document
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+"3.21 Generate 10 realizations of length n = 200 each of an ARMA(1,1) process with
+phi = .9, theta = .5 and var = 1. Find the MLEs of the three parameters in each case and
+compare the estimators to the true values."
+
+```{r import}
+packages <- c('stats','pander')
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))  
+}
+
+require(stats)
+require(pander)
+
+```{r code , echo=TRUE}
+#seed(3141593)
+phi <- .9
+phi.set <- c()
+theta <- .5
+theta.set <- c()
+var <- 1
+var.set <- c()
+
+output <- c()
+
+for(i in 1:10){  
+  ar2.sim  <- arima.sim(n=200,list(ar=phi,ma=theta,sd=sqrt(var)))
+  ar2.fit  <-arima(ar2.sim,order=c(1,0,1)) #p,d,q
+  b <- c(i, 'phi,theta,sigma2', paste(round(ar2.fit$coef[1], digits = 2),round(ar2.fit$coef[2],digits=2),round(ar2.fit$sigma2,digits=2),''), paste(phi,theta,var,''))
+  phi.set[i] <- round(ar2.fit$coef[1], digits = 2)
+  theta.set[i] <- round(ar2.fit$coef[2],digits=2)
+  var.set[i] <- round(ar2.fit$sigma2,digits=2)
+  output <- rbind(output,b)
+}
+colnames(output) <- c("Realization", "Parameters","Est. Value", "True Value")
+pandoc.table(output)
+```
+
+## Visual Comparison
+
+
+```{r comparison, echo=TRUE}
+plot(rep(phi,10), col="red", pch = 15, main="phi")
+axis(side=1, at=c(1:10))
+points(phi.set, col="blue", pch = 16)
+grid(col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = TRUE)
+
+plot(rep(theta,10), col="red", pch = 15, main="theta")
+axis(side=1, at=c(1:10))
+points(theta.set, col="blue", pch = 16)
+grid(col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = TRUE)
+
+plot(rep(var,10), col="red", pch = 15, main="var")
+axis(side=1, at=c(1:10))
+points(var.set, col="blue", pch = 16)
+grid(col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = TRUE)
+
+```
+
+

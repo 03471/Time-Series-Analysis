@@ -1,0 +1,56 @@
+---
+title: "STAT5307 Time Series Analysis HW Assignment-2"
+author: ""
+date: "September 18, 2017"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1.5
+###For the two series, xt, in Problem 1.2 (a) and (b):
+###a
+\usepackage{mathtools}
+\usepackage{astsa}
+
+
+```{r}
+#Compute and plot the mean functions meanx(t), for t = 1, . . . , 200.
+s = c(rep(0,100),10*exp(-(1:100)/20) * cos(2*pi*101:200/4))
+#adding white noise
+xa = s + rnorm(200)
+s = c(rep(0,100),10*exp(-(1:100)/200) * cos(2*pi*101:200/4))
+#adding white noise
+xb = s + rnorm(200)
+
+sa_wn = c(rep(0,100),10*exp(-(1:100)/20)*cos(2*pi*101:200/4))
+#mean function is to remove the white noise
+sb_wn = c(rep(0,100),10*exp(-(1:100)/200)*cos(2*pi*101:200/4))
+#mean function is to remove the white noise
+```
+
+#### Including Plots
+```{r plot1, echo=TRUE}
+plot.ts(sa_wn, type="l", col = "red",  main = "Comparison of means")
+lines(sb_wn, col="blue")
+```
+
+
+###b
+```{r}
+#Calculate the autocovariance functions, gamma x(s, t), for s, t = 1, . . . , 200.
+#we know that autocovariance rt,s = cov(xt, Xs) 
+#with the white noise
+xa_acf<- acf(xa, lag.max = 188, type = c("covariance"), na.action = na.fail, demean = TRUE)
+xb_acf<- acf(xb, lag.max = 188, type = c("covariance"), na.action = na.fail, demean = TRUE)
+```
+####Including Plots
+```{r plot2, echo=TRUE}
+#plot(xa_acf, col = "red")
+#plot(xb_acf, col="blue")
+```

@@ -1,0 +1,62 @@
+---
+title: '3.33'
+author: ""
+date: "November 26, 2017"
+output: word_document
+---
+
+```{r setup, include=TRUE, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+packages <- c('cobs','forecast','astsa','pander')
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())), dependencies = TRUE)  
+}
+require(cobs)
+require(forecast)
+require(astsa)
+require(pander)
+
+data(globtemp)
+```
+## table 3.1
+```{r table2, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
+table.3.1 <- c("","AR(p)","MA(q)","ARMA(p,q)")
+table.3.1 <- rbind(table.3.1,c("ACF","Tails off","Cuts off after lag q","Tails off"))
+table.3.1 <- rbind(table.3.1,c("PACF","Cuts off after lag p","Tails off q","Tails off"))
+pandoc.table(table.3.1)
+```
+
+## Problem 3.33
+
+Fit an ARIMA(p, d, q) model to the global temperature data globtemp performing all of the 
+necessary diagnostics. After deciding on an appropriate model, forecast (with limits) 
+the next 10 years. Comment
+
+```{r cars}
+summary(globtemp)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=TRUE}
+plot.ts(globtemp)
+acf(globtemp)
+#slow decay we take diff
+
+globtemp.d <- diff(globtemp)
+plot.ts(globtemp.d)
+
+
+acf(globtemp.d)
+pacf(globtemp.d)
+
+
+
+globtemp.fit <- sarima(globtemp,0,1,2,details=FALSE)
+summary(globtemp.fit)
+sarima.for(globtemp, 10, 0, 1, 2)
+```
+
+ACF cuts off at lag 2 PACF tails off | MA(2) for globtemp.d or ARIMA(0,1,2) for globtemp

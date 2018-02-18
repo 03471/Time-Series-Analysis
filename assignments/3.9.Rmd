@@ -1,0 +1,57 @@
+---
+title: "problem 3.9"
+author: ""
+date: "November 5, 2017"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Generate n = 100 observations from each of the three models discussed in Problem 3.8. Compute the sample ACF for each model and compare it to the theoretical
+values. Compute the sample PACF for each of the generated series and compare the
+sample ACFs and PACFs with the general results given in Table 3.1
+
+```{r import}
+packages <- c('stats','pander')
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))  
+}
+
+require(stats)
+require(pander)
+
+```
+## table 3.1
+```{r table2, echo=TRUE, message=FALSE, warnings=FALSE, results='asis'}
+table.3.1 <- c("","AR(p)","MA(q)","ARMA(p,q)")
+table.3.1 <- rbind(table.3.1,c("ACF","Tails off","Cuts off after lag q","Tails off"))
+table.3.1 <- rbind(table.3.1,c("PACF","Cuts off after lag p","Tails off q","Tails off"))
+pandoc.table(table.3.1)
+```
+
+## Including Plots
+
+```{r ARIMA.SIM, echo=FALSE}
+ARMA = arima.sim(n=100, list(order=c(1,0,1), ma=.9, ar=0.6)) #ARMA(1,1)
+AR = arima.sim(n=100, list(order=c(1,0,0) , ar=0.6)) # ARMA(1,0) = AR(1)
+MA = arima.sim(n=100, list(order=c(0,0,1), ma=.9)) # ARMA(0,1) = MA(1)
+```
+
+#ACF
+```{r ACF, echo=TRUE}
+acf(AR, lag.max = 20)
+acf(MA, lag.max = 20)
+acf(ARMA, lag.max = 20)
+```
+#PACF
+```{r PACF, echo=TRUE}
+pacf(AR, lag.max = 20)
+pacf(MA, lag.max = 20)
+pacf(ARMA, lag.max = 20)
+```

@@ -1,0 +1,53 @@
+---
+title: "problem 3.6"
+author: ""
+date: "Nov 5, 2017"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+For the AR(2) model given by xt = −.9xt−2 + wt, find the roots of the autoregressive polynomial, 
+and then plot the ACF, ρ(h)
+
+```{r library}
+packages <- c('stats')
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))  
+}
+
+require(stats)
+
+```
+
+## find the roots of the autoregressive polynomial
+
+```{r Moving Average Smoother, echo=TRUE}
+ar2 = arima.sim(list(order=c(2,0,0), ar=c(0,-.9)), n = 144)
+z = c(1, 0, 0.9) # coefficients of the polynomial
+a = polyroot(z)
+
+"0+1.054093i 0-1.054093i"
+```
+
+## plot the ACF, ρ(h)
+```{r Kernel Smoothing, echo=TRUE}
+### arg in cycles/pt
+arg = Arg(a)/(2*pi) 
+### pseudo cycle is 4
+k = 1/arg
+plot(ar2, axes=FALSE, xlab="Time")
+axis(2); 
+axis(1, at=seq(0,144,by=12))
+box()
+abline(v=seq(0,144,by=12), lty=2)
+
+```
+
+

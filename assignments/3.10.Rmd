@@ -1,0 +1,64 @@
+---
+title: '3.10'
+author: ""
+date: "November 21, 2017"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 3.10
+3.10 Let xt represent the cardiovascular mortality series (cmort) discussed in Example 2.2.
+(a) Fit an AR(2) to xt using linear regression as in Example 3.18.
+(b) Assuming the fitted model in (a) is the true model, find the forecasts over a fourweek horizon, xn n+m, for m = 1, 2, 3, 4, and the corresponding 95% prediction
+intervals.
+
+```{r import, echo=TRUE}
+packages <- c('astsa','forecast')
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())), dependencies = TRUE)  
+}
+require(astsa)
+require(forecast)
+```
+
+## Implementing a,b
+
+```{r pressure, echo=TRUE}
+cmort.ts<-ts(cmort)
+plot(cmort.ts, col="blue", cex=.01)
+cmort.ts.diff <-diff(cmort.ts)
+plot(cmort.ts.diff, col="red", cex=.01)
+acf2(cmort.ts.diff,20)
+
+cmort.fit<-arima(cmort.ts.diff,order = c(2,0,0))
+cmort.fit
+cmort.fit2 = sarima.for(cmort.ts.diff, 4, 2, 0, 0)
+cmort.fit2
+cmort.predictions = cmort.fit2$pred 
+
+cmort.errors = cmort.fit2$se 
+cmort.lowerci = c()
+cmort.upperci = c()
+for (i in 1:4){
+  cmort.upperci[i] = cmort.predictions[i] + 1.96*cmort.errors[i]
+  cmort.lowerci[i] = cmort.predictions[i] - 1.96*cmort.errors[i]
+}
+
+cmort.upperci
+cmort.upperci
+
+lapply(cmort.predictions, function(x){
+  print(x)
+})
+
+# compare with ar.ols
+cmort.reg=ar.ols(cmort.ts.diff, order=2, demean=F, intercept=T,level=.95,interval="prediction") 
+cmort.reg$var.pred <- as.vector(cmort.reg$var.pred)
+cmort.reg$asy.se.coef
+predict(cmort.reg, n.ahead=4)
+```

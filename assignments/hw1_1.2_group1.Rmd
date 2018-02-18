@@ -1,0 +1,73 @@
+---
+title: "STAT5307 Time Series Analysis HW Assignment-1"
+author: ""
+date: "September 12, 2017"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 1.2
+###a
+\usepackage{mathtools}
+\usepackage{astsa}
+
+```{r}
+s = c(rep(0,100),10*exp(-(1:100)/20) * cos(2*pi*101:200/4))
+#adding white noise
+xa = s + rnorm(200)
+```
+
+#### Including Plots
+```{r plot1, echo=TRUE}
+plot.ts(xa, col = 'blue', main="signal/noise")
+```
+
+
+###b
+```{r}
+s = c(rep(0,100),10*exp(-(1:100)/200) * cos(2*pi*101:200/4))
+xb = s + rnorm(200)
+```
+####Including Plots
+```{r plot2, echo=TRUE}
+plot.ts(xb, col = 'red', main="signal/noise")
+```
+
+###c
+Compare the general appearance of the series (a) and (b) with the earthquake
+series and the explosion series shown in Fig. 1.7. In addition, plot (or sketch)
+and compare the signal modulators 
+(a) exp{-t/20}
+(b) exp{-t/200} for t = 1,2,t=1,2,..,100
+```{r}
+s = c(rep(0,100),10*exp(-(1:100)/200) * cos(2*pi*101:200/4))
+xb = s + rnorm(200)
+#data(EQ5)
+#data(EXP6)
+```
+#### Including Plots
+```{r plotc1, echo=TRUE}
+plot(xa, type="l", col = "red", ylab = 'a', main = "Comparison of a vs b")
+#rmarkdown is having issues with plotting data has different ranges next 2 lines commented out
+#lines(EQ5, type='l',col = "blue",ylab = 'earthquake')
+#lines(EXP6, col="black")
+
+plot(xb, type="l", col = "red", ylab = 'a', main = "Comparison of a vs b")
+#rmarkdown is having issues with plotting data has different ranges next 2 lines commented out
+#lines(EQ5, type='l',col = "blue",ylab = 'earthquake')
+#lines(EXP6, col="black")
+```
+
+#### Including Plots
+```{r plotc2, echo=TRUE}
+plot(type = "l", exp(-1:100/20),main = "Comparison of Signal modulators ", ylab=' t/20 in red, t/200 in blue', col = "red")
+lines(exp(-1:100/200), col = "blue") 
+```
+
+

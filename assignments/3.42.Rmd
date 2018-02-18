@@ -1,0 +1,75 @@
+---
+title: '3.42'
+author: ""
+date: "December 4, 2017"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Problem 3.42
+
+3.42 Fit a seasonal ARIMA model of your choice to the unemployment data in
+UnempRate. Use the estimated model to forecast the next 12 months.
+
+```{r library, include=TRUE, warning= FALSE}
+packages <- c('forecast','astsa','pander')
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())), dependencies = TRUE)  
+}
+
+require(forecast)
+require(astsa)
+require(pander)
+
+data(UnempRate)
+str(UnempRate)
+summary(UnempRate)
+```
+```
+## table 3.1
+```{r table2, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
+table.3.1 <- c("","AR(p)","MA(q)","ARMA(p,q)")
+table.3.1 <- rbind(table.3.1,c("ACF","Tails off","Cuts off after lag q","Tails off"))
+table.3.1 <- rbind(table.3.1,c("PACF","Cuts off after lag p","Tails off q","Tails off"))
+pandoc.table(table.3.1)
+```
+
+## Data Analytics
+
+
+```{r analytics, echo=TRUE}
+plot.ts(UnempRate)
+UnempRate.d.12 <- diff(UnempRate,12)
+acf2(UnempRate.d.12)
+
+UnempRate.d.48 <- diff(UnempRate.d.12,48)
+acf2(UnempRate.d.48)
+
+UnempRate.fit = arima(UnempRate, order=c(2,1,0), seasonal=list(order=c(0,1,1), period=12))
+
+UnempRate.fit    # to view the results
+tsdiag(UnempRate.fit, gof.lag=48)  # diagnostics
+```
+
+## Predictions
+```{r prediction-1, echo=TRUE}
+UnempRate.pr = predict(UnempRate.fit, n.ahead=12)  # forecasts
+UnempRate.pr
+U = UnempRate.pr$pred + 1.96*UnempRate.pr$se
+L = UnempRate.pr$pred - 1.96*UnempRate.pr$se
+minx = min(UnempRate,L); maxx = max(UnempRate,U)
+ts.plot(UnempRate, col="gray", UnempRate.pr$pred, xlim=c(2005,2018), ylim=c(minx,maxx), main="Unemployment forecast the next 12 months") 
+lines(UnempRate.pr$pred, col="red", type="o")
+grid(col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = TRUE)
+lines(U, col="blue", lty="dashed")
+lines(L, col="blue", lty="dashed")
+```
+
+## Predictions
+```{r option-2, echo=TRUE}
+sarima(UnempRate, 1,0,0,0,1,2,12)
+sarima.for(UnempRate, 12, 1,0,0,0,1,2,12)
+```

@@ -1,0 +1,63 @@
+---
+title: '2.3'
+author: ""
+date: "October 9, 2017"
+output: word_document
+---
+
+```{r setup, include=TRUE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Problem 2.3
+In this problem, we explore the difference between a random walk and a trend stationary process.
+
+```{r library}
+
+packages <- c('stats')
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))  
+}
+
+require(stats)
+```
+
+## 2.3.a
+```{r part a}
+a.x <- array(dim = c(100,4))
+a.regx <- NULL
+
+#par(mfrow=c(2,2))
+lapply(1:4, function(i){
+  a.x[,i] = ts(cumsum(rnorm(100,.01,1))) #	data
+  a.regx[[i]]	= lm(a.x[,i]~0+time(a.x[,i]),	na.action=NULL)		#	regression
+  plot(a.x[,i],type = 'l',	ylab=paste('Random Walk w Drift',i,sep = '- series '),xlab = "ts")
+  summary(a.x[,i])
+  abline(a=0,	b=.01,	col=2,	lty=2)	
+  abline(a.regx[[i]],	col=4)
+})
+```
+## 2.3.b
+```{r part b}
+b.x <- array(dim = c(100,4))
+b.regx <- NULL
+b.t=1:100
+
+lapply(1:4, function(i){
+  b.x[,i]	= ts(rnorm(100,.01,1))	
+  b.yt=.1*b.t+b.x[,i]	#	data
+  b.regx[[i]]	= lm(b.yt~0+time(b.yt),	na.action=NULL)		#	regression
+  summary(b.regx[[i]])
+  plot(b.yt,type = 'l',	ylab=paste('Linear Trend Plus White Noise',i, sep='- series ',xlab ="ts"))	
+  abline(a=0,	b=.01,	col=2,	lty=2)	
+  abline(b.regx[[i]],	col=4)
+})
+
+```
+## 2.3.c
+```{r part c}
+# c
+#### plots in 2.3.a - 2.3.b should be compared as in index order, such as 2.3.a[1] vs 2.3.b[1]. significant difference between random walk and linear trend stationary process. Model accuracy in linear trend is higher compared to random walk with drift as expected.
+
+```
+
+

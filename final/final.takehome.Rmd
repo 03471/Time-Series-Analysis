@@ -1,0 +1,166 @@
+---
+title: "Final"
+author: ""
+date: "December 11, 2017"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+packages <- c('stats','astsa','CombMSC', 'TSA', 'forecast','knitr','pander')
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())), dependencies = TRUE)  
+}
+
+for(package in packages){
+  require(package, character.only = TRUE)
+}
+
+set.seed(10)
+```
+
+###including necessary components
+```{r table3.1, echo=TRUE}
+#Table 3.1. Behavior of the ACF and PACF for ARMA models
+table.3.1 <- c("","AR(p)","MA(q)","ARMA(p,q)")
+table.3.1 <- rbind(table.3.1,c("ACF","Tails off","Cuts off after lag q","Tails off"))
+table.3.1 <- rbind(table.3.1,c("PACF","Cuts off after lag p","Tails off q","Tails off"))
+pandoc.table(table.3.1)
+```
+## Question-1
+###Let xt be a SARIMA(0, 1, 1)×(1, 0, 1)4:
+* i Generate n = 1000 data points using the above model. Plot the time series data.
+* ii Use Box-Jenkins method to find an adequate model. Compare with the auto.arima() result.
+* iii Write down the algebraic form of your 'best' model and make a 5-ahead forecast (with both plots and predicted numbers).
+
+### i
+```{r q1i, include=TRUE}
+q1.data.xt <- sarima.Sim(n=1000, period=4, model = list(order= c(0,1,1), ma=.7),seasonal=list(order = c(1,0,1),ar=.6, ma=.8))
+
+q1.data.xt.diff <- diff(q1.data.xt,4)
+
+plot.ts(q1.data.xt.diff,main="ts simulated n=100 period=4",ylim=c(-15,15), col="blue")
+grid(col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = TRUE)
+```
+
+### ii
+```{r q1ii, include=TRUE}
+#seasonality differenced
+acf2(q1.data.xt.diff)
+#https://www.otexts.org/fpp/8/9
+
+arima.fit <- Arima(q1.data.xt, order=c(4,1,4), seasonal=c(3,0,0), method = "ML")
+sarima.fit <- sarima(q1.data.xt,4,1,4,3,0,0,4)
+
+#(p,d,q)x(P,D,Q)4 > (4,1,4)x(3,0,0)4
+
+pred.bj <- sarima.for(q1.data.xt,5, 4,1,4,3,0,0,4)
+
+
+auto.arima(q1.data.xt, max.p = 5, max.q = 5, max.P = 5, max.Q = 5)
+#ARIMA(3,1,3)(1,0,0)[4] 
+
+pred.auto <- sarima.for(q1.data.xt,5, 3,1,3,1,0,0,4)
+pred.auto$pred
+
+```
+
+### iii
+```{r q1iii, include=TRUE}
+plot(c(pred.auto$pred),col="red", pch = 15, type='p' , main="Auto Arima - Box-Jenkins Prediction Comparison", ylab = "sim data", xlab = "time")
+text(x=1:5, y=pred.auto$pred + .025, cex = .8, offset = 0, labels=round(pred.auto$pred,2), col="red") 
+axis(side=1, at=c(1:5))
+points(c(pred.bj$pred), col="blue", pch = 16)
+text(x=1:5, y=pred.bj$pred - .025,cex = .8, offset = 0, labels=c(round(pred.bj$pred,2)), col="blue") 
+grid(col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = TRUE)
+```
+
+## Question-2
+
+Problem 2. Analyze the data on yearly mean total sunspot number [1700 - now]. The data and information can be found here http://www.sidc.be/silso/datafiles#total.
+* i   Use Box-Jenkins method to find an adequate model using the data up to 2010.5 only. Compare with the auto.arima() result.
+* ii  Write down the algebraic form of your 'best' model. 
+* iii Make a 5-ahead forecast (with both plots and predicted numbers) and compare your forecast with the remainder of the data. Comment.
+
+### data source
+* Column 1: Gregorian calendar year (mid-year date)
+* Column 2: Yearly mean total sunspot number.
+* Column 3: Yearly mean standard deviation of the input sunspot numbers from individual stations.
+* Column 4: Number of observations used to compute the yearly mean total sunspot number.
+* Column 5: Definitive/provisional marker. A blank indicates that the value is definitive. A '*' 
+  symbol indicates that the yearly average still contains provisional daily values and is subject to a possible revision.
+  
+```{r r2i , echo=TRUE}
+sunspot.data <- read.table("D:\\Google Drive\\masters\\MSDA\\STAT5307-Time Series Analysis\\final\\SN_y_tot_V2.0.txt", header = FALSE)
+summary(sunspot.data)
+
+sunspot.data.raw = sunspot.data[,1:2]
+#317   2
+sunspot.data.train <- sunspot.data[1:311,1:2]
+sunspot.data.test <- sunspot.data[312:317,1:2]
+
+sunspot.data.train.ts <- ts(sunspot.data.train[,2],start=c(1700),frequency=1)
+
+plot(sunspot.data.train.ts, col="blue")
+acf2(sunspot.data.train.ts, 75) 
+
+sunspot.data.train.ts.diff <- diff(sunspot.data.train.ts,12)
+acf2(sunspot.data.train.ts.diff)
+acf2(diff(sunspot.data.train.ts.diff))
+eacf(sunspot.data.train.ts)
+
+#tails off cuts off at Lag 2 AR(2)
+```
+### Comment
+It is one of the properties of ARIMA models, that the AR (autoregressive) and the MA (moving average) terms 
+tend to 'eliminate each other out' or 'they work in opposite direction' (if you want to think about this in this way). 
+Therefore a model (4,0,4) might be actually very close to (0,0,0) as the 4 AR terms 'eliminate' the effect of 4 MA terms (depends on the coefficients).
+
+Although I am not able to give theoretical foundation for this, it is for practical purposes recommended to fit (if possible) either AR models or MA models, 
+because mixing both parts may lead to the above described behavior. It is also a practical rule to not go (if possible) above order of 2 for AR or MA terms.
+
+I have faced similar problems and I also witnessed that if you allow ARIMA models with higher orders (>2) and both (AR and MA) terms, 
+it is often the case that models of higher and higher orders will be fitted with better AIC criterion. 
+It seems here that the AIC is not fully able to penalize the kind of 'overfitting' that emerges here.
+
+```{r r2iii , echo=TRUE}
+arima.fit <- arima(sunspot.data.train.ts,order=c(2,0,0), seasonal=c(0,2,1), method = "ML")
+sarima.fit <- sarima(sunspot.data.train.ts,2,0,0,0,2,1,12)
+
+res <- sarima.for(sunspot.data.train.ts,6,2,0,0,0,2,1,12)
+
+res.pred <- c(75.71076, 140.53198, 167.38369, 181.83588, 122.54623,  83.05051)
+
+fit <- auto.arima(sunspot.data.train.ts)
+"
+ARIMA(2,0,1) with non-zero mean 
+Coefficients:
+ar1      ar2      ma1     mean
+1.4787  -0.7711  -0.1818  79.5908
+s.e.  0.0484   0.0438   0.0721   4.0548
+
+sigma^2 estimated as 659.2:  log likelihood=-1449.86
+AIC=2909.72   AICc=2909.92   BIC=2928.42
+"
+
+autoarima.forecast <- forecast(fit, h = 6)
+
+autoarima.pred <- c(57.41459,  88.96863, 110.55742, 118.15099, 112.73336,  98.86700)
+
+plot(forecast(fit),xlim=c(2000,2016))
+text(x=2011:2016, y= autoarima.pred + 2, cex = .6, offset = 0, labels=round(autoarima.pred,2), col="red") 
+axis(side=1, at=c(2011:2016))
+grid(col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = TRUE)
+
+#plot auto.arima and Box-Jenkins model predictions for next 5 values
+plot(x=2011:2016,ylim=c(50,190), y= res.pred,col="red", pch = 15, type='p' , main="Auto Arima - Box-Jenkins Prediction Comparison", ylab = "sim data", xlab = "time")
+text(x=2011:2016, y=res.pred + 2, cex = .8, offset = 1, labels=round(res.pred,2), col="red") 
+points(x=2011:2016, y= autoarima.pred, col="blue", pch = 17)
+text(x=2011:2016, y=autoarima.pred - 2,cex = .8, offset = 0, labels=c(round(autoarima.pred,2)), col="blue") 
+grid(col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = TRUE)
+
+```
+
+###Comment
+Auto arima generated model is not including seasonality component. Box-Jenkins method includes seasonality components
+predictions similar

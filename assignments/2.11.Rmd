@@ -1,0 +1,73 @@
+---
+title: "problem 2.11"
+author: ""
+date: "October 22, 2017"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Use two different smoothing techniques described in Sect. 2.3 to estimate the
+trend in the global temperature series globtemp. Comment.
+
+```{r library}
+packages <- c('astsa')
+if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
+  install.packages(setdiff(packages, rownames(installed.packages())))  
+}
+
+require(astsa)
+data(globtemp)
+```
+
+## Moving Average Smoother
+
+```{r Moving Average Smoother, echo=TRUE}
+wgts = c(.5, rep(1,11), .5)/12
+globtemp.filtered = filter(globtemp, sides=2, filter=wgts)
+plot(globtemp, col="red", lwd=2)
+lines(globtemp.filtered, lwd=1, col="blue")
+grid(col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = TRUE)
+par(fig = c(.5, 1, .5, 1), new = TRUE) # the insert
+nwgts = c(rep(0,20), wgts, rep(0,20))
+plot(nwgts, type="l", ylim = c(-.02,.1), xaxt='n', yaxt='n', ann=FALSE)
+```
+
+## Kernel Smoothing
+```{r Kernel Smoothing, echo=TRUE}
+plot(globtemp, col="red", lwd=3)
+lines(ksmooth(time(globtemp), globtemp, "normal", bandwidth=1), lwd=1, col="blue")
+grid(col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = TRUE)
+par(fig = c(.5, 1, .5, 1), new = TRUE)
+gauss = function(x) { 1/sqrt(2*pi) * exp(-(x^2)/2) }
+x = seq(from = -3, to = 3, by = 0.001)
+plot(x, gauss(x), type ="l", ylim=c(-.02,.45), xaxt='n', yaxt='n', ann=FALSE)
+
+```
+
+## lowes
+```{r lowes, echo=TRUE}
+plot(globtemp, col="red", lwd=2)
+lines(lowess(globtemp, f=.05), lwd=1, col="blue") 
+lines(lowess(globtemp), lty=2, lwd=2, col="darkgray") # trend (with default span)
+grid(col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = TRUE)
+
+```
+
+## Smoothing Splines
+```{r Smoothing Splines, echo=TRUE}
+
+plot(globtemp, col="red", lwd=2)
+lines(smooth.spline(time(globtemp), globtemp, spar=.5), lwd=1, col="blue")
+lines(smooth.spline(time(globtemp), globtemp, spar= 1), lty=2, lwd=2, col="darkgray")
+grid(col = "lightgray", lty = "dotted", lwd = par("lwd"), equilogs = TRUE)
+```
+
+## comment
+Kernel Smoothing works best. Lowes could be the second best fitting followed by Smoothing Splines and Moving Average Smoother
